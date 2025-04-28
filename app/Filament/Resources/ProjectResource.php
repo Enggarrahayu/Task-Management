@@ -56,6 +56,30 @@ class ProjectResource extends Resource
                 TextColumn::make('end_date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('tasks_count')
+                    ->label('Total Tasks')
+                    ->counts('tasks')
+                    ->sortable(),
+
+                TextColumn::make('task_titles')
+                    ->label('Task Titles')
+                    ->getStateUsing(function ($record) {
+                        return $record->tasks->map(function ($task) {
+                            $statusColors = [
+                                'done' => 'green',
+                                'in_progress' => '#00BFFF',
+                                'to_do' => 'red',
+                            ];
+
+                            $statusColor = $statusColors[$task->status] ?? 'gray'; 
+
+                            return '• ' . e($task->title) . ' — <span style="color:' . $statusColor . ';">' . ucfirst(str_replace('_', ' ', $task->status)) . '</span>';
+                        })->implode('<br>') ?: '-';
+                    })
+                    ->html() 
+                    ->wrap()
+                    ->searchable(),
+
             ])
             ->filters([
                 //
