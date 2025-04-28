@@ -13,6 +13,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification;
 
 class TaskResource extends Resource
 {
@@ -140,7 +141,7 @@ class TaskResource extends Resource
                     ->label('Assigned User')
                     ->sortable(),
 
-                TextColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'to_do' => 'warning',
@@ -150,7 +151,6 @@ class TaskResource extends Resource
                     })
                     ->sortable(),
 
-
                 Tables\Columns\TextColumn::make('deadline')
                     ->date()
                     ->sortable(),
@@ -158,34 +158,68 @@ class TaskResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'To Do' => 'To Do',
-                        'In Progress' => 'In Progress',
-                        'Done' => 'Done',
-                    ])
+                        'to_do' => 'To Do',
+                        'in_progress' => 'In Progress',
+                        'done' => 'Done',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+
+                // Action: Mark as In Progress
                 Tables\Actions\Action::make('mark_in_progress')
                     ->label('Mark as In Progress')
                     ->color('info')
                     ->icon('heroicon-o-arrow-path')
-                    ->requiresConfirmation(false) // Kita pakai modalForm jadi nggak perlu confirm biasa
+                    ->requiresConfirmation(false)
                     ->visible(fn($record) => $record->status === 'to_do')
                     ->form([
                         Forms\Components\Textarea::make('comment')
                             ->label('Comment')
-                            ->required()
-                            ->maxLength(500),
+                            ->maxLength(500), // COMMENT OPSIONAL
                     ])
                     ->action(function ($record, array $data) {
-                        // Update status task jadi in_progress
                         $record->update(['status' => 'in_progress']);
 
-                        // Simpan comment ke task_comments table
-                        $record->taskComments()->create([
-                            'comment' => $data['comment'],
-                            'user_id' => auth()->id(),
-                        ]);
+                        if (!empty($data['comment'])) {
+                            $record->taskComments()->create([
+                                'comment' => $data['comment'],
+                                'user_id' => auth()->id(),
+                            ]);
+                        }
+
+                        Notification::make()
+                            ->title('Task marked as In Progress.')
+                            ->success()
+                            ->send();
+                    }),
+
+                // Action: Mark as Complete
+                Tables\Actions\Action::make('mark_complete')
+                    ->label('Mark as Complete')
+                    ->color('success')
+                    ->icon('heroicon-o-check-circle')
+                    ->requiresConfirmation(false)
+                    ->visible(fn($record) => $record->status === 'in_progress')
+                    ->form([
+                        Forms\Components\Textarea::make('comment')
+                            ->label('Comment')
+                            ->maxLength(500), // COMMENT OPSIONAL
+                    ])
+                    ->action(function ($record, array $data) {
+                        $record->update(['status' => 'done']);
+
+                        if (!empty($data['comment'])) {
+                            $record->taskComments()->create([
+                                'comment' => $data['comment'],
+                                'user_id' => auth()->id(),
+                            ]);
+                        }
+
+                        Notification::make()
+                            ->title('Task marked as Completed.')
+                            ->success()
+                            ->send();
                     }),
             ])
             ->bulkActions([
@@ -194,6 +228,7 @@ class TaskResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {
