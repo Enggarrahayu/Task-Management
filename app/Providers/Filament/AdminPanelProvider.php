@@ -20,6 +20,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,11 +28,11 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin') 
-            ->path('admin') 
+            ->id('admin')
+            ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber, 
+                'primary' => Color::Amber,
             ])
             ->navigationGroups([
                 NavigationGroup::make()
@@ -42,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->pages([
-                Pages\Dashboard::class, 
+                Pages\Dashboard::class,
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
@@ -60,7 +61,14 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([
-                FilamentShieldPlugin::make(), 
+                FilamentShieldPlugin::make(),
+            ])
+            ->navigationItems([
+                NavigationItem::make('Progress Report')
+                    ->label('Progress Report')
+                    ->icon('heroicon-o-chart-bar')
+                    ->url('/admin/dashboard-report')
+                    ->sort(1),
             ]);
     }
 }
