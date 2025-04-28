@@ -11,17 +11,35 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'view projects',
-            'create projects',
-            'edit projects',
-            'delete projects',
-            'view tasks',
-            'create tasks',
-            'edit tasks',
-            'delete tasks',
-            'view comments',
-            'create comments',
-            'delete comments'
+            // Project permissions
+            'view_any_project',
+            'view_project',
+            'create_project',
+            'update_project',
+            'delete_project',
+            'delete_any_project',
+            'restore_project',
+            'force_delete_project',
+
+            // Task permissions
+            'view_any_task',
+            'view_task',
+            'create_task',
+            'update_task',
+            'delete_task',
+            'delete_any_task',
+            'restore_task',
+            'force_delete_task',
+
+            // Comment (TaskComment) permissions
+            'view_any_task_comment',
+            'view_task_comment',
+            'create_task_comment',
+            'update_task_comment',
+            'delete_task_comment',
+            'delete_any_task_comment',
+            'restore_task_comment',
+            'force_delete_task_comment',
         ];
 
         foreach ($permissions as $permission) {
@@ -29,31 +47,37 @@ class PermissionSeeder extends Seeder
         }
 
         // Assign permissions to roles
-        $adminRole = Role::where('name', 'Admin')->first();
-        $managerRole = Role::where('name', 'Manager')->first();
-        $staffRole = Role::where('name', 'Staff')->first();
+        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
+        $managerRole = Role::firstOrCreate(['name' => 'Manager']);
+        $staffRole = Role::firstOrCreate(['name' => 'Staff']);
 
-        // Admin: full access
+        // Admin: Full access
         $adminRole->givePermissionTo(Permission::all());
 
-        // Manager: manage project, tasks (except delete) and comment
+        // Manager: Manage project and tasks (except delete/force actions)
         $managerRole->givePermissionTo([
-            'view projects',
-            'create projects',
-            'edit projects',
-            'create tasks',
-            'edit tasks',
-            'view comments',
-            'create comments',
-            'delete comments',
+            'view_any_project',
+            'view_project',
+            'create_project',
+            'update_project',
+            'view_any_task',
+            'view_task',
+            'create_task',
+            'update_task',
+            'view_any_task_comment',
+            'view_task_comment',
+            'create_task_comment',
+            'update_task_comment',
         ]);
 
-        // Staff: only view tasks and manage comments
+        // Staff: Only view tasks and manage comments
         $staffRole->givePermissionTo([
-            'view tasks',
-            'view comments',
-            'create comments',
-            'delete comments',
+            'view_any_task',
+            'view_task',
+            'view_any_task_comment',
+            'view_task_comment',
+            'create_task_comment',
+            'update_task_comment',
         ]);
     }
 }
