@@ -168,7 +168,7 @@ class TaskResource extends Resource
 
                 // Action: Mark as In Progress
                 Tables\Actions\Action::make('mark_in_progress')
-                    ->label('Mark as In Progress')
+                    ->label('Mark In Progress')
                     ->color('info')
                     ->icon('heroicon-o-arrow-path')
                     ->requiresConfirmation(false)
@@ -196,7 +196,7 @@ class TaskResource extends Resource
 
                 // Action: Mark as Complete
                 Tables\Actions\Action::make('mark_complete')
-                    ->label('Mark as Complete')
+                    ->label('Mark Complete')
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
                     ->requiresConfirmation(false)
@@ -221,6 +221,12 @@ class TaskResource extends Resource
                             ->success()
                             ->send();
                     }),
+
+                Tables\Actions\Action::make('view_detail')
+                    ->label('View Detail')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn($record) => route('filament.admin.resources.tasks.view', ['record' => $record]))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -243,6 +249,7 @@ class TaskResource extends Resource
             'index' => Pages\ListTasks::route('/'),
             'create' => Pages\CreateTask::route('/create'),
             'edit' => Pages\EditTask::route('/{record}/edit'),
+            'view' => Pages\ViewTask::route('/{record}'),
         ];
     }
 }

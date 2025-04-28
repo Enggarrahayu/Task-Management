@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/admin/tasks/{task}/add-comment', [\App\Http\Controllers\TaskCommentController::class, 'store'])
+    ->name('tasks.addComment');
