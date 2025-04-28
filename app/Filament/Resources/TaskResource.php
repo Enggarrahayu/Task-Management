@@ -165,6 +165,28 @@ class TaskResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('mark_in_progress')
+                    ->label('Mark as In Progress')
+                    ->color('info')
+                    ->icon('heroicon-o-arrow-path')
+                    ->requiresConfirmation(false) // Kita pakai modalForm jadi nggak perlu confirm biasa
+                    ->visible(fn($record) => $record->status === 'to_do')
+                    ->form([
+                        Forms\Components\Textarea::make('comment')
+                            ->label('Comment')
+                            ->required()
+                            ->maxLength(500),
+                    ])
+                    ->action(function ($record, array $data) {
+                        // Update status task jadi in_progress
+                        $record->update(['status' => 'in_progress']);
+
+                        // Simpan comment ke task_comments table
+                        $record->taskComments()->create([
+                            'comment' => $data['comment'],
+                            'user_id' => auth()->id(),
+                        ]);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
