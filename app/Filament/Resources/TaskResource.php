@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use Filament\Tables\Actions\Action;
 
 class TaskResource extends Resource
 {
@@ -195,7 +196,7 @@ class TaskResource extends Resource
                     }),
 
                 // Action: Mark as Complete
-                Tables\Actions\Action::make('mark_complete')
+                Action::make('mark_complete')
                     ->label('Mark Complete')
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
@@ -221,6 +222,35 @@ class TaskResource extends Resource
                             ->success()
                             ->send();
                     }),
+
+                    Action::make('backToInProgress')
+                    ->label('Mark Incomplete')
+                    ->color('danger') 
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->visible(function ($record) {
+                        return $record->status === 'done' && auth()->user()->hasRole('Admin');
+                    })
+                    ->form([
+                        Forms\Components\Textarea::make('task_comment')
+                            ->label('Reason for Marking Incomplete')
+                            ->required()
+                            ->rows(4),
+                    ])
+                    ->action(function (array $data, $record) {
+                        $record->update([
+                            'status' => 'in_progress',
+                        ]);
+                
+                        $record->taskComments()->create([
+                            'user_id' => auth()->id(),
+                            'comment' => $data['task_comment'],
+                        ]);
+                    })
+                    ->modalHeading('Mark Task as Incomplete')
+                    ->modalSubheading('Please provide a reason for moving this task back to In Progress.')
+                    ->modalButton('Confirm')
+                    ->color('danger'),
+                
 
                 Tables\Actions\Action::make('view_detail')
                     ->label('View Detail')
